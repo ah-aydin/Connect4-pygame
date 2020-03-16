@@ -12,7 +12,7 @@ ROW_COUNT = 6
 COLUMN_COUNT = 7
 
 # Display variables
-DIST = 100
+DIST = 80
 RADIUS = DIST // 2
 WIDTH = COLUMN_COUNT * DIST
 HEIGHT = (ROW_COUNT + 1) * DIST
@@ -24,6 +24,10 @@ def create_board():
     return board
 
 def drop_piece(board, col, player):
+    if not is_valid(board, col):
+        return
+    global turn
+    turn = (turn+1) % 2
     row = ROW_COUNT-1
     while row > 0 and board[row-1][col] == 0:
         row -= 1
@@ -83,7 +87,7 @@ def check_win(board, row, col, player):
                 print_win(board, player)
                 game_over = True
 
-    # Check the column from the indexes (row, col)
+    # Check the column at index colcol
     lst = []
     for i in range(ROW_COUNT):
         lst.append(board[i][col])
@@ -94,7 +98,7 @@ def check_win(board, row, col, player):
                 print_win(board, player)
                 game_over = True
 
-    # Check the row from the indexes (row, col)
+    # Check the row at index row
     lst = []
     for i in range(COLUMN_COUNT):
         lst.append(board[row][i])
@@ -105,23 +109,23 @@ def check_win(board, row, col, player):
                 print_win(board, player)
                 game_over = True
 
-
 def print_board(board):
     print(np.flip(board, axis=0))
 
 def is_valid(board, col):
-    if col < 0 or col > COLUMN_COUNT - 1:
-        print('Position out of bounds')
-        return False
     if board[ROW_COUNT-1][col] != 0:
         print('Full column.')
         return False
     return True
 
-def draw_board(surface, board):
+def draw_board(surface, board, player):
     surface.fill(BLACK) # Clear the display
     pygame.draw.rect(surface, BLUE, (0, DIST, WIDTH, HEIGHT-DIST)) # Draw the playing board
-    c = int(board[0][0])
+    
+    # Draw the piece to be dropped
+    pos = (pygame.mouse.get_pos()[0], RADIUS)
+    pygame.draw.circle(surface, colors[player], pos, RADIUS-4)
+
     # Draw circles according to the values inside the board variable
     for j in range(COLUMN_COUNT):
         for i in range(ROW_COUNT):
@@ -130,32 +134,29 @@ def draw_board(surface, board):
             pygame.draw.circle(surface, colors[c], pos, RADIUS-4)
     pygame.display.update()
 
+def get_input(board, player):
+    if pygame.mouse.get_pressed()[0] == True:
+        mouse_pos_x = pygame.mouse.get_pos()[0]
+        col = mouse_pos_x//DIST
+        drop_piece(board, col, player)
+
 def main():
     global board
     global game_over
+    global turn
 
     board = create_board()
     game_over = False
     turn = 0
-    drop_piece(board, 3, 1)
-    drop_piece(board, 3, 1)
-    drop_piece(board, 3, 2)
-    drop_piece(board, 4, 1)
     print_board(board)
     while not game_over:
-        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
-        
-        draw_board(window, board)
-        """while True:
-            col = int(input('Player {} make a selectoin (0-6): '.format(turn+1)))
-            if is_valid(board, col) == True:
-                break"""
-        #drop_piece(board, col, turn+1)
-        turn = (turn + 1) % 2
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                get_input(board, turn+1)
+        draw_board(window, board, turn+1)
 
 if __name__ == '__main__':
     main()
