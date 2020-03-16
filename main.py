@@ -2,14 +2,18 @@
 
 import numpy as np
 import pygame
+from color import BLACK, RED, BLUE, YELLOW
 
 pygame.init()
+
+colors = [BLACK, RED, YELLOW]
 
 ROW_COUNT = 6
 COLUMN_COUNT = 7
 
 # Display variables
 DIST = 100
+RADIUS = DIST // 2
 WIDTH = COLUMN_COUNT * DIST
 HEIGHT = (ROW_COUNT + 1) * DIST
 
@@ -115,7 +119,16 @@ def is_valid(board, col):
     return True
 
 def draw_board(surface, board):
-    pass
+    surface.fill(BLACK) # Clear the display
+    pygame.draw.rect(surface, BLUE, (0, DIST, WIDTH, HEIGHT-DIST)) # Draw the playing board
+    c = int(board[0][0])
+    # Draw circles according to the values inside the board variable
+    for j in range(COLUMN_COUNT):
+        for i in range(ROW_COUNT):
+            pos = (DIST*j+RADIUS, HEIGHT - (DIST*i+RADIUS))
+            c = int(board[i][j])
+            pygame.draw.circle(surface, colors[c], pos, RADIUS-4)
+    pygame.display.update()
 
 def main():
     global board
@@ -124,20 +137,25 @@ def main():
     board = create_board()
     game_over = False
     turn = 0
-
+    drop_piece(board, 3, 1)
+    drop_piece(board, 3, 1)
+    drop_piece(board, 3, 2)
+    drop_piece(board, 4, 1)
+    print_board(board)
     while not game_over:
-        print_board(board)
-        while True:
-            col = int(input('Player {} make a selectoin (0-6): '.format(turn+1)))
-            if is_valid(board, col) == True:
-                break
-        drop_piece(board, col, turn+1)
-        turn = (turn + 1) % 2
-
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
+        
+        draw_board(window, board)
+        """while True:
+            col = int(input('Player {} make a selectoin (0-6): '.format(turn+1)))
+            if is_valid(board, col) == True:
+                break"""
+        #drop_piece(board, col, turn+1)
+        turn = (turn + 1) % 2
 
 if __name__ == '__main__':
     main()
